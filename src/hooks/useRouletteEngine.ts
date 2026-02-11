@@ -38,6 +38,64 @@ type UseRouletteEngineParams = {
   setStudents: Dispatch<SetStateAction<Student[]>>
 }
 
+type TwistDirection = -1 | 1
+
+const resolveTwistDirection = (twistType: TwistType): TwistDirection => {
+  if (twistType === 'wind') {
+    return -1
+  }
+  if (twistType === 'bird') {
+    return 1
+  }
+  return Math.random() < 0.5 ? -1 : 1
+}
+
+const getShiftedWinnerByAvailableOrder = (
+  students: Student[],
+  currentWinnerId: string,
+  direction: TwistDirection,
+) => {
+  const availableEntries = students
+    .map((student, index) => ({ student, index }))
+    .filter((entry) => entry.student.isAvailable)
+
+  if (availableEntries.length < 2) {
+    return null
+  }
+
+  const currentPosition = availableEntries.findIndex(
+    (entry) => entry.student.id === currentWinnerId,
+  )
+  if (currentPosition < 0) {
+    return null
+  }
+
+  const targetPosition =
+    direction === 1
+      ? (currentPosition + 1) % availableEntries.length
+      : (currentPosition - 1 + availableEntries.length) % availableEntries.length
+
+  const sourceEntry = availableEntries[currentPosition]
+  const targetEntry = availableEntries[targetPosition]
+  if (!targetEntry || sourceEntry.index === targetEntry.index) {
+    return null
+  }
+
+  const stepCount =
+    direction === 1
+      ? (targetEntry.index - sourceEntry.index + students.length) % students.length
+      : (sourceEntry.index - targetEntry.index + students.length) % students.length
+
+  if (stepCount === 0) {
+    return null
+  }
+
+  return {
+    winnerStudent: targetEntry.student,
+    stepCount,
+  }
+}
+
 export const useRouletteEngine = ({
   students,
   settings,
@@ -153,7 +211,7 @@ export const useRouletteEngine = ({
         return
       }
 
-      const targetRotation = getTargetRotation(
+      const selectedTargetRotation = getTargetRotation(
         rotationRef.current,
         winnerIndex,
         workingStudents.length,
@@ -175,6 +233,32 @@ export const useRouletteEngine = ({
         spinsRef.current >= settingsRef.current.twistCooldownSpins &&
         Math.random() < settingsRef.current.twistProbability
 
+      let resolvedTwistType: TwistType | null = null
+      let resolvedTwistDirection: TwistDirection | null = null
+      let finalWinnerStudent = selectedStudent
+      let targetRotation = selectedTargetRotation
+
+      if (twistCandidate) {
+        resolvedTwistType = pickRandom(enabledTwistTypes) ?? 'wind'
+        resolvedTwistDirection = resolveTwistDirection(resolvedTwistType)
+
+        const shifted = getShiftedWinnerByAvailableOrder(
+          workingStudents,
+          selectedStudent.id,
+          resolvedTwistDirection,
+        )
+
+        if (shifted) {
+          const segmentAngle = 360 / workingStudents.length
+          finalWinnerStudent = shifted.winnerStudent
+          targetRotation =
+            selectedTargetRotation -
+            resolvedTwistDirection * shifted.stepCount * segmentAngle
+        }
+      }
+
+      const applyTwist = twistCandidate && resolvedTwistType !== null
+
       const token = spinTokenRef.current + 1
       spinTokenRef.current = token
       clearTimers()
@@ -190,14 +274,24 @@ export const useRouletteEngine = ({
         return
       }
 
-      if (twistCandidate) {
-        const twistType = pickRandom(enabledTwistTypes) ?? 'wind'
+      if (applyTwist && resolvedTwistType) {
+        const twistType = resolvedTwistType
         const fakeStopOffset = randomFloat(8, 18)
-        const fakeStopRotation = targetRotation - fakeStopOffset
-        const maxNudge = Math.max(6, fakeStopOffset - 2)
-        const nudgeRotation =
-          fakeStopRotation + randomFloat(6, Math.min(18, maxNudge))
+        const fakeStopRotation = selectedTargetRotation - fakeStopOffset
+        const finalDelta = targetRotation - fakeStopRotation
+        const nudgeSign = finalDelta >= 0 ? 1 : -1
+        const nudgeMagnitude = Math.min(
+          18,
+          Math.max(6, Math.abs(finalDelta) * 0.35),
+        )
+        const nudgeRotation = fakeStopRotation + nudgeSign * nudgeMagnitude
         const mainDuration = randomInt(TWIST_SPIN_MIN_MS, TWIST_SPIN_MAX_MS)
+        const shiftMessage =
+          resolvedTwistDirection === -1
+            ? '1つ前の人へ！'
+            : resolvedTwistDirection === 1
+              ? '1つ後の人へ！'
+              : '別の人へ！'
 
         setRouletteState('spinning')
         setTransitionEasing('cubic-bezier(0.12, 0.86, 0.2, 1)')
@@ -219,7 +313,7 @@ export const useRouletteEngine = ({
 
         setRouletteState('twistEvent')
         setActiveTwistType(twistType)
-        setTwistMessage(TWIST_MESSAGES[twistType])
+        setTwistMessage(`${TWIST_MESSAGES[twistType]} ${shiftMessage}`)
         setTransitionEasing('ease-out')
         setTransitionDurationMs(NUDGE_MS)
         setRotation(nudgeRotation)
@@ -257,20 +351,20 @@ export const useRouletteEngine = ({
       }
 
       const updatedStudents = studentsRef.current.map((student) =>
-        student.id === selectedStudent.id
+        student.id === finalWinnerStudent.id
           ? { ...student, isAvailable: false }
           : student,
       )
       studentsRef.current = updatedStudents
       setStudents(updatedStudents)
 
-      setWinnerId(selectedStudent.id)
+      setWinnerId(finalWinnerStudent.id)
       setTwistMessage('')
       setRouletteState('result')
       setTransitionDurationMs(0)
       setTransitionEasing('linear')
 
-      if (twistCandidate) {
+      if (applyTwist) {
         spinsRef.current = 0
         setSpinsSinceLastTwist(0)
       } else {
