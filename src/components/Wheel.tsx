@@ -1,0 +1,167 @@
+import { COLOR_PALETTES } from '../constants'
+import type { LabelMode, RouletteSettings, RouletteState, Student } from '../types'
+import { getSegmentAngle, truncateLabel } from '../utils/roulette'
+
+type WheelProps = {
+  students: Student[]
+  settings: RouletteSettings
+  rotation: number
+  transitionDurationMs: number
+  transitionEasing: string
+  winnerId: string | null
+  rouletteState: RouletteState
+}
+
+const RADIUS = 200
+
+const toCartesian = (radius: number, angleFromTop: number) => {
+  const radians = ((angleFromTop - 90) * Math.PI) / 180
+  return {
+    x: radius * Math.cos(radians),
+    y: radius * Math.sin(radians),
+  }
+}
+
+const describeSectorPath = (
+  radius: number,
+  startAngle: number,
+  endAngle: number,
+): string => {
+  const start = toCartesian(radius, startAngle)
+  const end = toCartesian(radius, endAngle)
+  const largeArcFlag = endAngle - startAngle > 180 ? 1 : 0
+  return `M 0 0 L ${start.x} ${start.y} A ${radius} ${radius} 0 ${largeArcFlag} 1 ${end.x} ${end.y} Z`
+}
+
+const getLabel = (student: Student, index: number, labelMode: LabelMode): string => {
+  if (labelMode === 'initial') {
+    const trimmed = student.name.trim()
+    return trimmed.length > 0 ? trimmed.charAt(0) : '?'
+  }
+  if (labelMode === 'number') {
+    return String(index + 1)
+  }
+  return truncateLabel(student.name, 8)
+}
+
+export const Wheel = ({
+  students,
+  settings,
+  rotation,
+  transitionDurationMs,
+  transitionEasing,
+  winnerId,
+  rouletteState,
+}: WheelProps) => {
+  const segmentCount = students.length
+  const segmentAngle = getSegmentAngle(segmentCount)
+  const palette = COLOR_PALETTES[settings.colorScheme]
+  const showWinnerHighlight = rouletteState === 'result' && winnerId !== null
+
+  if (segmentCount === 0) {
+    return (
+      <div className="flex aspect-square w-full items-center justify-center rounded-full border-4 border-slate-300 bg-white shadow-xl">
+        <p className="text-xl font-bold text-slate-500">生徒を追加してください</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="relative mx-auto aspect-square w-full max-w-[560px] rounded-full border-4 border-slate-300 bg-white shadow-2xl">
+      <svg
+        viewBox="-220 -220 440 440"
+        className="h-full w-full rounded-full"
+        style={{
+          transform: `rotate(${rotation}deg)`,
+          transition: `transform ${transitionDurationMs}ms ${transitionEasing}`,
+        }}
+      >
+        {settings.segmentStyle === 'striped' && (
+          <defs>
+            {students.map((_, index) => {
+              const baseColor = palette[index % palette.length]
+              return (
+                <pattern
+                  id={`stripe-${index}`}
+                  key={`stripe-${index}`}
+                  patternUnits="userSpaceOnUse"
+                  width="10"
+                  height="10"
+                  patternTransform="rotate(45)"
+                >
+                  <rect width="10" height="10" fill={`${baseColor}33`} />
+                  <line x1="0" y1="0" x2="0" y2="10" stroke={baseColor} strokeWidth="5" />
+                </pattern>
+              )
+            })}
+          </defs>
+        )}
+
+        {students.map((student, index) => {
+          const startAngle = index * segmentAngle
+          const endAngle = startAngle + segmentAngle
+          const midAngle = startAngle + segmentAngle / 2
+          const path = describeSectorPath(RADIUS, startAngle, endAngle)
+
+          const baseColor = palette[index % palette.length]
+          const fallbackColor = settings.colorScheme === 'mono' ? '#94a3b8' : '#cbd5e1'
+          const segmentColor = student.isAvailable ? baseColor : fallbackColor
+
+          const fill =
+            settings.segmentStyle === 'outlined'
+              ? 'transparent'
+              : settings.segmentStyle === 'striped'
+                ? `url(#stripe-${index})`
+                : segmentColor
+
+          const strokeColor =
+            settings.segmentStyle === 'outlined' ? segmentColor : '#0f172a'
+          const dividerStroke = settings.showDividers ? strokeColor : 'transparent'
+          const isWinner = showWinnerHighlight && student.id === winnerId
+
+          const labelPosition = toCartesian(RADIUS * 0.62, midAngle)
+          const labelColor = settings.colorScheme === 'vivid' ? '#ffffff' : '#0f172a'
+
+          return (
+            <g key={student.id}>
+              <path
+                d={path}
+                fill={fill}
+                opacity={student.isAvailable ? 1 : 0.55}
+                stroke={dividerStroke}
+                strokeWidth={settings.segmentStyle === 'outlined' ? 3 : 1.8}
+              />
+
+              {isWinner && (
+                <path
+                  d={path}
+                  fill="transparent"
+                  stroke="#f59e0b"
+                  strokeWidth={5}
+                  opacity={0.95}
+                />
+              )}
+
+              {settings.showLabels && (
+                <text
+                  x={labelPosition.x}
+                  y={labelPosition.y}
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                  fill={labelColor}
+                  fontWeight={700}
+                  fontSize={12}
+                >
+                  {getLabel(student, index, settings.labelMode)}
+                </text>
+              )}
+            </g>
+          )
+        })}
+
+        <circle cx="0" cy="0" r="22" fill="#0f172a" />
+        <circle cx="0" cy="0" r="8" fill="#f8fafc" />
+      </svg>
+    </div>
+  )
+}
