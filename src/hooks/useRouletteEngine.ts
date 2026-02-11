@@ -249,7 +249,8 @@ export const useRouletteEngine = ({
       const twistCandidate =
         settingsRef.current.twistEnabled &&
         enabledTwistTypes.length > 0 &&
-        spinsRef.current >= settingsRef.current.twistCooldownSpins &&
+        (settingsRef.current.twistProbability >= 1 ||
+          spinsRef.current >= settingsRef.current.twistCooldownSpins) &&
         Math.random() < settingsRef.current.twistProbability
 
       let resolvedTwistType: TwistType | null = null
