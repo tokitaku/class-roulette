@@ -17,6 +17,7 @@ export const DEFAULT_SETTINGS: RouletteSettings = {
     wind: true,
     sparkle: true,
   },
+  sparkleShiftMode: 'forward2',
   segmentStyle: 'solid',
   showDividers: true,
   showLabels: true,

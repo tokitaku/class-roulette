@@ -23,9 +23,21 @@ export const RoulettePage = () => {
   const [isSettingsOpen, setSettingsOpen] = useState(false)
   const [skipRestorePreviousWinner, setSkipRestorePreviousWinner] = useState(false)
 
+  const normalizedSettings = useMemo(
+    () => ({
+      ...DEFAULT_SETTINGS,
+      ...settings,
+      enabledTwistTypes: {
+        ...DEFAULT_SETTINGS.enabledTwistTypes,
+        ...settings.enabledTwistTypes,
+      },
+    }),
+    [settings],
+  )
+
   const engine = useRouletteEngine({
     students,
-    settings,
+    settings: normalizedSettings,
     setStudents,
   })
 
@@ -134,7 +146,7 @@ export const RoulettePage = () => {
               <Pointer />
               <Wheel
                 students={students}
-                settings={settings}
+                settings={normalizedSettings}
                 rotation={engine.rotation}
                 transitionDurationMs={engine.transitionDurationMs}
                 transitionEasing={engine.transitionEasing}
@@ -197,7 +209,7 @@ export const RoulettePage = () => {
       <SettingsPanel
         open={isSettingsOpen}
         locked={engine.rotationPhaseLocked}
-        settings={settings}
+        settings={normalizedSettings}
         setSettings={setSettings}
         onClose={() => setSettingsOpen(false)}
       />

@@ -43,12 +43,22 @@ type TwistShiftConfig = {
   message: string
 }
 
-const resolveTwistShift = (twistType: TwistType): TwistShiftConfig => {
+const resolveTwistShift = (
+  twistType: TwistType,
+  settings: RouletteSettings,
+): TwistShiftConfig => {
   if (twistType === 'wind') {
     return { availableShift: -1, message: '1つ前の人へ！' }
   }
   if (twistType === 'bird') {
     return { availableShift: 1, message: '1つ後の人へ！' }
+  }
+
+  if (settings.sparkleShiftMode === 'backward2') {
+    return { availableShift: -2, message: '2つ前の人へ！' }
+  }
+  if (settings.sparkleShiftMode === 'forward3') {
+    return { availableShift: 3, message: '3つ後の人へ！' }
   }
   return { availableShift: 2, message: '2つ後の人へ！' }
 }
@@ -249,7 +259,10 @@ export const useRouletteEngine = ({
 
       if (twistCandidate) {
         resolvedTwistType = pickRandom(enabledTwistTypes) ?? 'wind'
-        resolvedTwistShift = resolveTwistShift(resolvedTwistType)
+        resolvedTwistShift = resolveTwistShift(
+          resolvedTwistType,
+          settingsRef.current,
+        )
 
         const shifted = getShiftedWinnerByAvailableOrder(
           workingStudents,
