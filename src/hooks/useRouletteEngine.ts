@@ -38,22 +38,25 @@ type UseRouletteEngineParams = {
   setStudents: Dispatch<SetStateAction<Student[]>>
 }
 
-type TwistDirection = -1 | 1
+type TwistShiftConfig = {
+  availableShift: number
+  message: string
+}
 
-const resolveTwistDirection = (twistType: TwistType): TwistDirection => {
+const resolveTwistShift = (twistType: TwistType): TwistShiftConfig => {
   if (twistType === 'wind') {
-    return -1
+    return { availableShift: -1, message: '1つ前の人へ！' }
   }
   if (twistType === 'bird') {
-    return 1
+    return { availableShift: 1, message: '1つ後の人へ！' }
   }
-  return Math.random() < 0.5 ? -1 : 1
+  return { availableShift: 2, message: '2つ後の人へ！' }
 }
 
 const getShiftedWinnerByAvailableOrder = (
   students: Student[],
   currentWinnerId: string,
-  direction: TwistDirection,
+  shiftByAvailableOrder: number,
 ) => {
   const availableEntries = students
     .map((student, index) => ({ student, index }))
@@ -70,10 +73,14 @@ const getShiftedWinnerByAvailableOrder = (
     return null
   }
 
+  let normalizedShift = shiftByAvailableOrder % availableEntries.length
+  if (normalizedShift === 0) {
+    normalizedShift = shiftByAvailableOrder >= 0 ? 1 : -1
+  }
+
   const targetPosition =
-    direction === 1
-      ? (currentPosition + 1) % availableEntries.length
-      : (currentPosition - 1 + availableEntries.length) % availableEntries.length
+    (currentPosition + normalizedShift + availableEntries.length) %
+    availableEntries.length
 
   const sourceEntry = availableEntries[currentPosition]
   const targetEntry = availableEntries[targetPosition]
@@ -81,18 +88,20 @@ const getShiftedWinnerByAvailableOrder = (
     return null
   }
 
-  const stepCount =
-    direction === 1
-      ? (targetEntry.index - sourceEntry.index + students.length) % students.length
-      : (sourceEntry.index - targetEntry.index + students.length) % students.length
+  const forwardSteps =
+    (targetEntry.index - sourceEntry.index + students.length) % students.length
+  const backwardSteps =
+    (sourceEntry.index - targetEntry.index + students.length) % students.length
+  const wheelSignedSteps =
+    normalizedShift > 0 ? forwardSteps : -backwardSteps
 
-  if (stepCount === 0) {
+  if (wheelSignedSteps === 0) {
     return null
   }
 
   return {
     winnerStudent: targetEntry.student,
-    stepCount,
+    wheelSignedSteps,
   }
 }
 
@@ -234,26 +243,24 @@ export const useRouletteEngine = ({
         Math.random() < settingsRef.current.twistProbability
 
       let resolvedTwistType: TwistType | null = null
-      let resolvedTwistDirection: TwistDirection | null = null
+      let resolvedTwistShift: TwistShiftConfig | null = null
       let finalWinnerStudent = selectedStudent
       let targetRotation = selectedTargetRotation
 
       if (twistCandidate) {
         resolvedTwistType = pickRandom(enabledTwistTypes) ?? 'wind'
-        resolvedTwistDirection = resolveTwistDirection(resolvedTwistType)
+        resolvedTwistShift = resolveTwistShift(resolvedTwistType)
 
         const shifted = getShiftedWinnerByAvailableOrder(
           workingStudents,
           selectedStudent.id,
-          resolvedTwistDirection,
+          resolvedTwistShift.availableShift,
         )
 
         if (shifted) {
           const segmentAngle = 360 / workingStudents.length
           finalWinnerStudent = shifted.winnerStudent
-          targetRotation =
-            selectedTargetRotation -
-            resolvedTwistDirection * shifted.stepCount * segmentAngle
+          targetRotation = selectedTargetRotation - shifted.wheelSignedSteps * segmentAngle
         }
       }
 
@@ -286,12 +293,7 @@ export const useRouletteEngine = ({
         )
         const nudgeRotation = fakeStopRotation + nudgeSign * nudgeMagnitude
         const mainDuration = randomInt(TWIST_SPIN_MIN_MS, TWIST_SPIN_MAX_MS)
-        const shiftMessage =
-          resolvedTwistDirection === -1
-            ? '1つ前の人へ！'
-            : resolvedTwistDirection === 1
-              ? '1つ後の人へ！'
-              : '別の人へ！'
+        const shiftMessage = resolvedTwistShift?.message ?? '別の人へ！'
 
         setRouletteState('spinning')
         setTransitionEasing('cubic-bezier(0.12, 0.86, 0.2, 1)')
