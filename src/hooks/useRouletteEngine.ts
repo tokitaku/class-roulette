@@ -68,50 +68,36 @@ const getShiftedWinnerByAvailableOrder = (
   currentWinnerId: string,
   shiftByAvailableOrder: number,
 ) => {
-  const availableEntries = students
-    .map((student, index) => ({ student, index }))
-    .filter((entry) => entry.student.isAvailable)
+  const availableStudents = students.filter((student) => student.isAvailable)
 
-  if (availableEntries.length < 2) {
+  if (availableStudents.length < 2) {
     return null
   }
 
-  const currentPosition = availableEntries.findIndex(
-    (entry) => entry.student.id === currentWinnerId,
+  const currentPosition = availableStudents.findIndex(
+    (student) => student.id === currentWinnerId,
   )
   if (currentPosition < 0) {
     return null
   }
 
-  let normalizedShift = shiftByAvailableOrder % availableEntries.length
+  let normalizedShift = shiftByAvailableOrder % availableStudents.length
   if (normalizedShift === 0) {
     normalizedShift = shiftByAvailableOrder >= 0 ? 1 : -1
   }
 
   const targetPosition =
-    (currentPosition + normalizedShift + availableEntries.length) %
-    availableEntries.length
+    (currentPosition + normalizedShift + availableStudents.length) %
+    availableStudents.length
 
-  const sourceEntry = availableEntries[currentPosition]
-  const targetEntry = availableEntries[targetPosition]
-  if (!targetEntry || sourceEntry.index === targetEntry.index) {
-    return null
-  }
-
-  const forwardSteps =
-    (targetEntry.index - sourceEntry.index + students.length) % students.length
-  const backwardSteps =
-    (sourceEntry.index - targetEntry.index + students.length) % students.length
-  const wheelSignedSteps =
-    normalizedShift > 0 ? forwardSteps : -backwardSteps
-
-  if (wheelSignedSteps === 0) {
+  const targetStudent = availableStudents[targetPosition]
+  if (!targetStudent || currentPosition === targetPosition) {
     return null
   }
 
   return {
-    winnerStudent: targetEntry.student,
-    wheelSignedSteps,
+    winnerStudent: targetStudent,
+    wheelSignedSteps: normalizedShift,
   }
 }
 
@@ -223,7 +209,7 @@ export const useRouletteEngine = ({
         return
       }
 
-      const winnerIndex = workingStudents.findIndex(
+      const winnerIndex = availableStudents.findIndex(
         (student) => student.id === selectedStudent.id,
       )
       if (winnerIndex < 0) {
@@ -233,7 +219,7 @@ export const useRouletteEngine = ({
       const selectedTargetRotation = getTargetRotation(
         rotationRef.current,
         winnerIndex,
-        workingStudents.length,
+        availableStudents.length,
         MIN_FULL_TURNS,
       )
 
@@ -272,7 +258,7 @@ export const useRouletteEngine = ({
         )
 
         if (shifted) {
-          const segmentAngle = 360 / workingStudents.length
+          const segmentAngle = 360 / availableStudents.length
           finalWinnerStudent = shifted.winnerStudent
           targetRotation = selectedTargetRotation - shifted.wheelSignedSteps * segmentAngle
         }

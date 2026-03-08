@@ -5,7 +5,6 @@ type StudentEditorProps = {
   students: Student[]
   locked: boolean
   onAddStudent: (name: string) => void
-  onDeleteStudent: (id: string) => void
   onToggleAvailability: (id: string, isAvailable: boolean) => void
   onApplyBulk: (bulkText: string) => void
 }
@@ -14,7 +13,6 @@ export const StudentEditor = ({
   students,
   locked,
   onAddStudent,
-  onDeleteStudent,
   onToggleAvailability,
   onApplyBulk,
 }: StudentEditorProps) => {
@@ -102,14 +100,6 @@ export const StudentEditor = ({
               {index + 1}番
             </div>
 
-            <button
-              type="button"
-              onClick={() => onDeleteStudent(student.id)}
-              disabled={locked}
-              className="rounded-lg bg-rose-500 px-3 py-1.5 text-sm font-semibold text-white hover:bg-rose-600 disabled:cursor-not-allowed disabled:bg-slate-400"
-            >
-              削除
-            </button>
           </div>
         ))}
       </div>

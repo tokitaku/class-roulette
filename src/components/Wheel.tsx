@@ -3,7 +3,7 @@ import type { RouletteSettings, RouletteState, Student } from '../types'
 import { getSegmentAngle } from '../utils/roulette'
 
 type WheelProps = {
-  students: Student[]
+  students: (Student & { originalIndex: number })[]
   settings: RouletteSettings
   rotation: number
   transitionDurationMs: number
@@ -151,7 +151,7 @@ export const Wheel = ({
                   fontWeight={700}
                   fontSize={dynamicFontSize}
                 >
-                  {index + 1}
+                  {student.originalIndex + 1}
                 </text>
               )}
             </g>

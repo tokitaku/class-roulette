@@ -63,14 +63,6 @@ export const RoulettePage = () => {
     ])
   }
 
-  const handleDeleteStudent = (id: string) => {
-    if (isEditingLocked) {
-      return
-    }
-
-    setStudents((previous) => previous.filter((student) => student.id !== id))
-  }
-
 
   const handleToggleAvailability = (id: string, isAvailable: boolean) => {
     if (isEditingLocked) {
@@ -136,7 +128,6 @@ export const RoulettePage = () => {
             students={students}
             locked={isEditingLocked}
             onAddStudent={handleAddStudent}
-            onDeleteStudent={handleDeleteStudent}
             onToggleAvailability={handleToggleAvailability}
             onApplyBulk={handleApplyBulk}
           />
@@ -147,7 +138,9 @@ export const RoulettePage = () => {
             <div className="relative">
               <Pointer />
               <Wheel
-                students={students}
+                students={students
+                  .map((student, index) => ({ ...student, originalIndex: index }))
+                  .filter((student) => student.isAvailable)}
                 settings={normalizedSettings}
                 rotation={engine.rotation}
                 transitionDurationMs={engine.transitionDurationMs}
