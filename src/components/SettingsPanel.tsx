@@ -104,8 +104,8 @@ export const SettingsPanel = ({
                     disabled={locked}
                     onClick={() => update({ twistProbability: rate })}
                     className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition ${settings.twistProbability === rate
-                        ? 'bg-indigo-600 text-white'
-                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                      ? 'bg-indigo-600 text-white'
+                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                       } disabled:cursor-not-allowed disabled:bg-slate-200`}
                   >
                     {Math.round(rate * 100)}%
@@ -126,8 +126,8 @@ export const SettingsPanel = ({
                     disabled={locked}
                     onClick={() => update({ twistCooldownSpins: count })}
                     className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition ${settings.twistCooldownSpins === count
-                        ? 'bg-indigo-600 text-white'
-                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                      ? 'bg-indigo-600 text-white'
+                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                       } disabled:cursor-not-allowed disabled:bg-slate-200`}
                   >
                     {count}

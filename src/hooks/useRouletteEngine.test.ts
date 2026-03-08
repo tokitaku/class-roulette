@@ -30,7 +30,6 @@ describe('useRouletteEngine', () => {
         expect(result.current.state).toBe('idle')
         expect(result.current.availableCount).toBe(3)
         expect(result.current.canStart).toBe(true)
-        expect(result.current.canSkip).toBe(false)
         expect(result.current.isBusy).toBe(false)
         expect(result.current.winnerId).toBeNull()
     })

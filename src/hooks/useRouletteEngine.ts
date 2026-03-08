@@ -28,9 +28,8 @@ import {
   randomInt,
 } from '../utils/roulette'
 
-type StartSpinOptions = {
-  restorePreviousWinner?: boolean
-}
+// Removed StartSpinOptions
+
 
 type UseRouletteEngineParams = {
   students: Student[]
@@ -177,22 +176,12 @@ export const useRouletteEngine = ({
     rouletteState === 'twistEvent'
 
   const startSpin = useCallback(
-    async (options: StartSpinOptions = {}) => {
+    async () => {
       if (isBusy) {
         return
       }
 
-      let workingStudents = studentsRef.current
-
-      if (options.restorePreviousWinner && winnerIdRef.current) {
-        workingStudents = workingStudents.map((student) =>
-          student.id === winnerIdRef.current
-            ? { ...student, isAvailable: true }
-            : student,
-        )
-        studentsRef.current = workingStudents
-        setStudents(workingStudents)
-      }
+      const workingStudents = studentsRef.current
 
       const availableStudents = workingStudents.filter(
         (student) => student.isAvailable,
@@ -380,15 +369,6 @@ export const useRouletteEngine = ({
     [clearTimers, isBusy, setStudents, wait],
   )
 
-  const skipToNext = useCallback(
-    async (restorePreviousWinner: boolean) => {
-      if (rouletteState !== 'result') {
-        return
-      }
-      await startSpin({ restorePreviousWinner })
-    },
-    [rouletteState, startSpin],
-  )
 
   const resetAll = useCallback(() => {
     if (isBusy) {
@@ -424,7 +404,6 @@ export const useRouletteEngine = ({
   }, [clearTimers])
 
   const canStart = !isBusy && availableCount >= 2
-  const canSkip = rouletteState === 'result' && availableCount >= 1
 
   return {
     state: rouletteState,
@@ -440,9 +419,7 @@ export const useRouletteEngine = ({
     rotationPhaseLocked,
     spinsSinceLastTwist,
     canStart,
-    canSkip,
     startSpin,
-    skipToNext,
     resetAll,
   }
 }

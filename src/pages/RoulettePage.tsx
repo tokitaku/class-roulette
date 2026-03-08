@@ -21,7 +21,6 @@ export const RoulettePage = () => {
     DEFAULT_SETTINGS,
   )
   const [isSettingsOpen, setSettingsOpen] = useState(false)
-  const [skipRestorePreviousWinner, setSkipRestorePreviousWinner] = useState(false)
   const [isSidebarVisible, setSidebarVisible] = useLocalStorageState(
     STORAGE_KEYS.sidebarVisible,
     true,
@@ -109,13 +108,23 @@ export const RoulettePage = () => {
               公平抽選・非復元・Twist演出
             </p>
           </div>
-          <button
-            type="button"
-            onClick={() => setSidebarVisible((prev) => !prev)}
-            className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          >
-            {isSidebarVisible ? 'リストを隠す' : 'リストを表示'}
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setSettingsOpen(true)}
+              disabled={engine.rotationPhaseLocked}
+              className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              ⚙️ 設定
+            </button>
+            <button
+              type="button"
+              onClick={() => setSidebarVisible((prev) => !prev)}
+              className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              {isSidebarVisible ? 'リストを隠す' : 'リストを表示'}
+            </button>
+          </div>
         </div>
       </header>
 
@@ -174,20 +183,13 @@ export const RoulettePage = () => {
               <Controls
                 state={engine.state}
                 canStart={engine.canStart}
-                canSkip={engine.canSkip}
                 availableCount={engine.availableCount}
                 totalCount={students.length}
                 errorMessage={engine.errorMessage}
-                skipRestorePreviousWinner={skipRestorePreviousWinner}
                 onStart={() => {
                   void engine.startSpin()
                 }}
-                onSkip={(restorePreviousWinner) => {
-                  void engine.skipToNext(restorePreviousWinner)
-                }}
                 onReset={engine.resetAll}
-                onOpenSettings={() => setSettingsOpen(true)}
-                onChangeSkipRestore={setSkipRestorePreviousWinner}
               />
             </div>
           </div>
