@@ -1,7 +1,7 @@
-# 学級ルーレット（React + TypeScript + Tailwind）
+# ルーレット（React + TypeScript + Tailwind）
 
-授業中に発表者を公平に選ぶためのホイール型ルーレットです。  
-非復元抽選（当選者を次回除外）と、見た目だけ変化するTwist演出を実装しています。
+発表者を公平に選ぶためのホイール型ルーレットです。  
+非復元抽選（当選者を次回除外）と、見た目だけ変化するTwist演出を実装しました。
 
 ## 主な機能
 
@@ -26,6 +26,7 @@ npm run dev
 ```bash
 npm run lint
 npm run build
+npm run test
 ```
 
 ## 永続化キー
