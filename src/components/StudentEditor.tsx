@@ -6,7 +6,6 @@ type StudentEditorProps = {
   locked: boolean
   onAddStudent: (name: string) => void
   onDeleteStudent: (id: string) => void
-  onRenameStudent: (id: string, name: string) => void
   onToggleAvailability: (id: string, isAvailable: boolean) => void
   onApplyBulk: (bulkText: string) => void
 }
@@ -16,7 +15,6 @@ export const StudentEditor = ({
   locked,
   onAddStudent,
   onDeleteStudent,
-  onRenameStudent,
   onToggleAvailability,
   onApplyBulk,
 }: StudentEditorProps) => {
@@ -84,7 +82,7 @@ export const StudentEditor = ({
           <p className="text-sm text-slate-500">まだ生徒が登録されていません。</p>
         )}
 
-        {students.map((student) => (
+        {students.map((student, index) => (
           <div
             key={student.id}
             className="flex items-center gap-2 rounded-xl bg-slate-50 px-2 py-2"
@@ -100,13 +98,9 @@ export const StudentEditor = ({
               title="抽選対象に含める"
             />
 
-            <input
-              type="text"
-              value={student.name}
-              onChange={(event) => onRenameStudent(student.id, event.target.value)}
-              disabled={locked}
-              className="min-w-0 flex-1 rounded-lg border border-slate-200 px-2 py-1.5 text-sm outline-none ring-indigo-300 transition focus:ring-2 disabled:bg-slate-100"
-            />
+            <div className="min-w-0 flex-1 px-2 py-1.5 text-sm font-medium text-slate-700">
+              {index + 1}番
+            </div>
 
             <button
               type="button"

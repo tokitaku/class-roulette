@@ -48,23 +48,20 @@ export const SettingsPanel = ({
 
   return (
     <div
-      className={`fixed inset-0 z-50 transition ${
-        open ? 'pointer-events-auto' : 'pointer-events-none'
-      }`}
+      className={`fixed inset-0 z-50 transition ${open ? 'pointer-events-auto' : 'pointer-events-none'
+        }`}
     >
       <button
         type="button"
         aria-label="設定を閉じる"
-        className={`absolute inset-0 bg-slate-900/45 transition ${
-          open ? 'opacity-100' : 'opacity-0'
-        }`}
+        className={`absolute inset-0 bg-slate-900/45 transition ${open ? 'opacity-100' : 'opacity-0'
+          }`}
         onClick={onClose}
       />
 
       <aside
-        className={`absolute right-0 top-0 h-full w-full max-w-md overflow-y-auto bg-white p-5 shadow-2xl transition-transform ${
-          open ? 'translate-x-0' : 'translate-x-full'
-        }`}
+        className={`absolute right-0 top-0 h-full w-full max-w-md overflow-y-auto bg-white p-5 shadow-2xl transition-transform ${open ? 'translate-x-0' : 'translate-x-full'
+          }`}
       >
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-2xl font-bold text-slate-900">設定</h2>
@@ -106,11 +103,10 @@ export const SettingsPanel = ({
                     key={rate}
                     disabled={locked}
                     onClick={() => update({ twistProbability: rate })}
-                    className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition ${
-                      settings.twistProbability === rate
+                    className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition ${settings.twistProbability === rate
                         ? 'bg-indigo-600 text-white'
                         : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                    } disabled:cursor-not-allowed disabled:bg-slate-200`}
+                      } disabled:cursor-not-allowed disabled:bg-slate-200`}
                   >
                     {Math.round(rate * 100)}%
                   </button>
@@ -129,11 +125,10 @@ export const SettingsPanel = ({
                     key={count}
                     disabled={locked}
                     onClick={() => update({ twistCooldownSpins: count })}
-                    className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition ${
-                      settings.twistCooldownSpins === count
+                    className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition ${settings.twistCooldownSpins === count
                         ? 'bg-indigo-600 text-white'
                         : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                    } disabled:cursor-not-allowed disabled:bg-slate-200`}
+                      } disabled:cursor-not-allowed disabled:bg-slate-200`}
                   >
                     {count}
                   </button>
@@ -223,21 +218,6 @@ export const SettingsPanel = ({
               ラベルを表示
             </label>
 
-            <label className="block text-sm font-semibold text-slate-700">
-              ラベル形式
-              <select
-                value={settings.labelMode}
-                disabled={locked}
-                onChange={(event) =>
-                  update({ labelMode: event.target.value as RouletteSettings['labelMode'] })
-                }
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-              >
-                <option value="full">full</option>
-                <option value="initial">initial</option>
-                <option value="number">number</option>
-              </select>
-            </label>
 
             <label className="block text-sm font-semibold text-slate-700">
               配色

@@ -45,10 +45,6 @@ export const RoulettePage = () => {
     setStudents,
   })
 
-  const currentWinner = useMemo(
-    () => students.find((student) => student.id === engine.winnerId) ?? null,
-    [engine.winnerId, students],
-  )
 
   const isEditingLocked = engine.isBusy
 
@@ -75,17 +71,6 @@ export const RoulettePage = () => {
     setStudents((previous) => previous.filter((student) => student.id !== id))
   }
 
-  const handleRenameStudent = (id: string, name: string) => {
-    if (isEditingLocked) {
-      return
-    }
-
-    setStudents((previous) =>
-      previous.map((student) =>
-        student.id === id ? { ...student, name } : student,
-      ),
-    )
-  }
 
   const handleToggleAvailability = (id: string, isAvailable: boolean) => {
     if (isEditingLocked) {
@@ -152,7 +137,6 @@ export const RoulettePage = () => {
             locked={isEditingLocked}
             onAddStudent={handleAddStudent}
             onDeleteStudent={handleDeleteStudent}
-            onRenameStudent={handleRenameStudent}
             onToggleAvailability={handleToggleAvailability}
             onApplyBulk={handleApplyBulk}
           />
@@ -191,13 +175,6 @@ export const RoulettePage = () => {
                   </div>
                 </div>
               )}
-            </div>
-
-            <div className="mt-5 rounded-2xl bg-slate-900 px-4 py-4 text-center text-white">
-              <p className="text-sm font-semibold text-slate-300">当選者</p>
-              <p className="mt-1 min-h-14 text-4xl font-black tracking-wide">
-                {currentWinner?.name ?? '---'}
-              </p>
             </div>
 
             <div className="mt-5">

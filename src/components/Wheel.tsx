@@ -1,6 +1,6 @@
 import { COLOR_PALETTES } from '../constants'
-import type { LabelMode, RouletteSettings, RouletteState, Student } from '../types'
-import { getSegmentAngle, truncateLabel } from '../utils/roulette'
+import type { RouletteSettings, RouletteState, Student } from '../types'
+import { getSegmentAngle } from '../utils/roulette'
 
 type WheelProps = {
   students: Student[]
@@ -31,17 +31,6 @@ const describeSectorPath = (
   const end = toCartesian(radius, endAngle)
   const largeArcFlag = endAngle - startAngle > 180 ? 1 : 0
   return `M 0 0 L ${start.x} ${start.y} A ${radius} ${radius} 0 ${largeArcFlag} 1 ${end.x} ${end.y} Z`
-}
-
-const getLabel = (student: Student, index: number, labelMode: LabelMode): string => {
-  if (labelMode === 'initial') {
-    const trimmed = student.name.trim()
-    return trimmed.length > 0 ? trimmed.charAt(0) : '?'
-  }
-  if (labelMode === 'number') {
-    return String(index + 1)
-  }
-  return truncateLabel(student.name, 8)
 }
 
 export const Wheel = ({
@@ -124,7 +113,7 @@ export const Wheel = ({
           const labelColor = settings.colorScheme === 'vivid' ? '#ffffff' : '#0f172a'
 
           // Move the text relative to the center, slightly outwards from the middle radius
-          const labelRadiusOffset = RADIUS * 0.55
+          const labelRadiusOffset = RADIUS * 0.85
           const transform = `rotate(${rotationAngle}) translate(${labelRadiusOffset}, 0)`
 
           // Depending on the side of the wheel, text can be upside down. 
@@ -162,7 +151,7 @@ export const Wheel = ({
                   fontWeight={700}
                   fontSize={dynamicFontSize}
                 >
-                  {getLabel(student, index, settings.labelMode)}
+                  {index + 1}
                 </text>
               )}
             </g>

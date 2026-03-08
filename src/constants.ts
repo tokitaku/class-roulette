@@ -22,7 +22,6 @@ export const DEFAULT_SETTINGS: RouletteSettings = {
   segmentStyle: 'solid',
   showDividers: true,
   showLabels: true,
-  labelMode: 'full',
   colorScheme: 'pastel',
 }
 

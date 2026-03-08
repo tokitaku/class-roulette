@@ -14,7 +14,6 @@ export type Student = {
 
 export type TwistType = 'bird' | 'wind' | 'sparkle'
 export type SegmentStyle = 'solid' | 'striped' | 'outlined'
-export type LabelMode = 'full' | 'initial' | 'number'
 export type ColorScheme = 'pastel' | 'vivid' | 'mono'
 export type SparkleShiftMode = 'forward2' | 'backward2' | 'forward3'
 
@@ -27,6 +26,5 @@ export type RouletteSettings = {
   segmentStyle: SegmentStyle
   showDividers: boolean
   showLabels: boolean
-  labelMode: LabelMode
   colorScheme: ColorScheme
 }
