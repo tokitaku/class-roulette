@@ -5,7 +5,7 @@ export const STORAGE_KEYS = {
   settings: 'class-roulette:settings:v1',
 } as const
 
-export const TWIST_PROBABILITY_PRESETS = [0, 0.03, 0.05, 0.08, 0.1] as const
+export const TWIST_PROBABILITY_PRESETS = [0, 0.03, 0.05, 0.08, 0.1, 1] as const
 export const TWIST_COOLDOWN_PRESETS = [0, 3, 5, 10] as const
 
 export const DEFAULT_SETTINGS: RouletteSettings = {
