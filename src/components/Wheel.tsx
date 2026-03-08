@@ -119,8 +119,19 @@ export const Wheel = ({
           const dividerStroke = settings.showDividers ? strokeColor : 'transparent'
           const isWinner = showWinnerHighlight && student.id === winnerId
 
-          const labelPosition = toCartesian(RADIUS * 0.62, midAngle)
+          const rotationAngle = midAngle - 90
+          const dynamicFontSize = Math.max(8, Math.min(18, 320 / segmentCount))
           const labelColor = settings.colorScheme === 'vivid' ? '#ffffff' : '#0f172a'
+
+          // Move the text relative to the center, slightly outwards from the middle radius
+          const labelRadiusOffset = RADIUS * 0.55
+          const transform = `rotate(${rotationAngle}) translate(${labelRadiusOffset}, 0)`
+
+          // Depending on the side of the wheel, text can be upside down. 
+          // For a spinning wheel reading from the edge inwards or outwards is standard,
+          // but rotating it extra 180 on the left side might make reading easier when stopped.
+          // However, keeping it consistently pointing outward simplifies the look.
+          // Let's use anchor "middle" to balance long names inside the wedge.
 
           return (
             <g key={student.id}>
@@ -144,13 +155,12 @@ export const Wheel = ({
 
               {settings.showLabels && (
                 <text
-                  x={labelPosition.x}
-                  y={labelPosition.y}
+                  transform={transform}
                   textAnchor="middle"
                   dominantBaseline="middle"
                   fill={labelColor}
                   fontWeight={700}
-                  fontSize={12}
+                  fontSize={dynamicFontSize}
                 >
                   {getLabel(student, index, settings.labelMode)}
                 </text>
