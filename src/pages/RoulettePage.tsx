@@ -22,6 +22,10 @@ export const RoulettePage = () => {
   )
   const [isSettingsOpen, setSettingsOpen] = useState(false)
   const [skipRestorePreviousWinner, setSkipRestorePreviousWinner] = useState(false)
+  const [isSidebarVisible, setSidebarVisible] = useLocalStorageState(
+    STORAGE_KEYS.sidebarVisible,
+    true,
+  )
 
   const normalizedSettings = useMemo(
     () => ({
@@ -120,25 +124,39 @@ export const RoulettePage = () => {
 
   return (
     <div className="min-h-screen bg-slate-100 text-slate-900">
-      <header className="border-b border-slate-200 bg-white/85 backdrop-blur">
+      <header className="border-b border-slate-200 bg-white/85 backdrop-blur z-10 relative">
         <div className="mx-auto flex w-full max-w-[1440px] items-center justify-between px-4 py-4 md:px-6">
-          <h1 className="text-2xl font-extrabold md:text-3xl">学級ルーレット</h1>
-          <p className="text-sm font-semibold text-slate-600">
-            公平抽選・非復元・Twist演出
-          </p>
+          <div>
+            <h1 className="text-2xl font-extrabold md:text-3xl">学級ルーレット</h1>
+            <p className="hidden text-sm font-semibold text-slate-600 sm:block">
+              公平抽選・非復元・Twist演出
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setSidebarVisible((prev) => !prev)}
+            className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          >
+            {isSidebarVisible ? 'リストを隠す' : 'リストを表示'}
+          </button>
         </div>
       </header>
 
-      <main className="mx-auto grid w-full max-w-[1440px] gap-6 px-4 py-6 md:px-6 lg:grid-cols-[380px_minmax(0,1fr)]">
-        <StudentEditor
-          students={students}
-          locked={isEditingLocked}
-          onAddStudent={handleAddStudent}
-          onDeleteStudent={handleDeleteStudent}
-          onRenameStudent={handleRenameStudent}
-          onToggleAvailability={handleToggleAvailability}
-          onApplyBulk={handleApplyBulk}
-        />
+      <main
+        className={`mx-auto grid w-full max-w-[1440px] gap-6 px-4 py-6 md:px-6 ${isSidebarVisible ? 'lg:grid-cols-[380px_minmax(0,1fr)]' : 'lg:grid-cols-1'
+          }`}
+      >
+        {isSidebarVisible && (
+          <StudentEditor
+            students={students}
+            locked={isEditingLocked}
+            onAddStudent={handleAddStudent}
+            onDeleteStudent={handleDeleteStudent}
+            onRenameStudent={handleRenameStudent}
+            onToggleAvailability={handleToggleAvailability}
+            onApplyBulk={handleApplyBulk}
+          />
+        )}
 
         <section className="rounded-3xl bg-white p-5 shadow-lg">
           <div className="relative mx-auto w-full max-w-[760px]">

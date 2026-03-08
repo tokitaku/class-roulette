@@ -3,6 +3,7 @@ import type { ColorScheme, RouletteSettings, Student, TwistType } from './types'
 export const STORAGE_KEYS = {
   students: 'class-roulette:students:v1',
   settings: 'class-roulette:settings:v1',
+  sidebarVisible: 'class-roulette:sidebarVisible:v1',
 } as const
 
 export const TWIST_PROBABILITY_PRESETS = [0, 0.03, 0.05, 0.08, 0.1, 1] as const
