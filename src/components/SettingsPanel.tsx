@@ -3,7 +3,7 @@ import {
   TWIST_COOLDOWN_PRESETS,
   TWIST_PROBABILITY_PRESETS,
 } from '../constants'
-import type { RouletteSettings, SparkleShiftMode, TwistType } from '../types'
+import type { RouletteSettings } from '../types'
 
 type SettingsPanelProps = {
   open: boolean
@@ -13,17 +13,7 @@ type SettingsPanelProps = {
   onClose: () => void
 }
 
-const TWIST_TYPE_LABELS: Record<TwistType, string> = {
-  bird: '鳥',
-  wind: '風',
-  sparkle: 'きらめき',
-}
 
-const SPARKLE_SHIFT_OPTIONS: { value: SparkleShiftMode; label: string }[] = [
-  { value: 'forward2', label: '2つ後' },
-  { value: 'backward2', label: '2つ前' },
-  { value: 'forward3', label: '3つ後' },
-]
 
 export const SettingsPanel = ({
   open,
@@ -36,15 +26,6 @@ export const SettingsPanel = ({
     setSettings((previous) => ({ ...previous, ...partial }))
   }
 
-  const updateTwistType = (type: TwistType, enabled: boolean) => {
-    setSettings((previous) => ({
-      ...previous,
-      enabledTwistTypes: {
-        ...previous.enabledTwistTypes,
-        [type]: enabled,
-      },
-    }))
-  }
 
   return (
     <div
@@ -136,45 +117,7 @@ export const SettingsPanel = ({
               </div>
             </div>
 
-            <div>
-              <p className="mb-2 text-sm font-semibold text-slate-700">Twist種別</p>
-              <div className="space-y-1">
-                {(Object.keys(TWIST_TYPE_LABELS) as TwistType[]).map((type) => (
-                  <label
-                    key={type}
-                    className="flex items-center gap-2 text-sm text-slate-700"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={settings.enabledTwistTypes[type]}
-                      disabled={locked}
-                      onChange={(event) => updateTwistType(type, event.target.checked)}
-                    />
-                    {TWIST_TYPE_LABELS[type]}
-                  </label>
-                ))}
-              </div>
-            </div>
 
-            <label className="block text-sm font-semibold text-slate-700">
-              きらめき時の移動先
-              <select
-                value={settings.sparkleShiftMode}
-                disabled={locked}
-                onChange={(event) =>
-                  update({
-                    sparkleShiftMode: event.target.value as SparkleShiftMode,
-                  })
-                }
-                className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-              >
-                {SPARKLE_SHIFT_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
           </section>
 
           <section className="space-y-3 rounded-2xl border border-slate-200 p-4">

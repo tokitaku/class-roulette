@@ -16,17 +16,17 @@ import {
   NUDGE_MS,
   TWIST_FINAL_MS,
   TWIST_MESSAGE_HOLD_MS,
-  TWIST_MESSAGES,
   TWIST_SPIN_MAX_MS,
   TWIST_SPIN_MIN_MS,
 } from '../constants'
-import type { RouletteSettings, RouletteState, Student, TwistType } from '../types'
+import type { RouletteSettings, RouletteState, Student } from '../types'
 import {
   getTargetRotation,
   pickRandom,
   randomFloat,
   randomInt,
 } from '../utils/roulette'
+import { isBusyState, isRotationLocked } from '../utils/stateHelpers'
 
 // Removed StartSpinOptions
 
@@ -42,24 +42,18 @@ type TwistShiftConfig = {
   message: string
 }
 
-const resolveTwistShift = (
-  twistType: TwistType,
-  settings: RouletteSettings,
-): TwistShiftConfig => {
-  if (twistType === 'wind') {
-    return { availableShift: -1, message: '1つ前の人へ！' }
-  }
-  if (twistType === 'bird') {
-    return { availableShift: 1, message: '1つ後の人へ！' }
-  }
+const resolveTwistShift = (): TwistShiftConfig => {
+  const sparkleOptions: TwistShiftConfig[] = [
+    { availableShift: 0, message: 'やっぱりこの人！' },
+    { availableShift: 1, message: '1つ後の人へ！' },
+    { availableShift: -1, message: '1つ前の人へ！' },
+    { availableShift: 2, message: '2つ後の人へ！' },
+    { availableShift: -2, message: '2つ前の人へ！' },
+    { availableShift: 3, message: '3つ後の人へ！' },
+    { availableShift: -3, message: '3つ前の人へ！' }
+  ]
 
-  if (settings.sparkleShiftMode === 'backward2') {
-    return { availableShift: -2, message: '2つ前の人へ！' }
-  }
-  if (settings.sparkleShiftMode === 'forward3') {
-    return { availableShift: 3, message: '3つ後の人へ！' }
-  }
-  return { availableShift: 2, message: '2つ後の人へ！' }
+  return sparkleOptions[Math.floor(Math.random() * sparkleOptions.length)]
 }
 
 const getShiftedWinnerByAvailableOrder = (
@@ -81,8 +75,8 @@ const getShiftedWinnerByAvailableOrder = (
   }
 
   let normalizedShift = shiftByAvailableOrder % availableStudents.length
-  if (normalizedShift === 0) {
-    normalizedShift = shiftByAvailableOrder >= 0 ? 1 : -1
+  if (normalizedShift === 0 && shiftByAvailableOrder !== 0) {
+    normalizedShift = shiftByAvailableOrder > 0 ? 1 : -1
   }
 
   const targetPosition =
@@ -90,7 +84,7 @@ const getShiftedWinnerByAvailableOrder = (
     availableStudents.length
 
   const targetStudent = availableStudents[targetPosition]
-  if (!targetStudent || currentPosition === targetPosition) {
+  if (!targetStudent) {
     return null
   }
 
@@ -110,7 +104,6 @@ export const useRouletteEngine = ({
   const [transitionDurationMs, setTransitionDurationMs] = useState(0)
   const [transitionEasing, setTransitionEasing] = useState('linear')
   const [winnerId, setWinnerId] = useState<string | null>(null)
-  const [activeTwistType, setActiveTwistType] = useState<TwistType | null>(null)
   const [twistMessage, setTwistMessage] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
   const [spinsSinceLastTwist, setSpinsSinceLastTwist] = useState(
@@ -164,16 +157,9 @@ export const useRouletteEngine = ({
     [students],
   )
 
-  const isBusy =
-    rouletteState === 'countdown' ||
-    rouletteState === 'spinning' ||
-    rouletteState === 'fakeStop' ||
-    rouletteState === 'twistEvent'
+  const isBusy = isBusyState(rouletteState)
 
-  const rotationPhaseLocked =
-    rouletteState === 'spinning' ||
-    rouletteState === 'fakeStop' ||
-    rouletteState === 'twistEvent'
+  const rotationPhaseLocked = isRotationLocked(rouletteState)
 
   const startSpin = useCallback(
     async () => {
@@ -212,33 +198,18 @@ export const useRouletteEngine = ({
         MIN_FULL_TURNS,
       )
 
-      const enabledTwistTypes = (
-        Object.entries(settingsRef.current.enabledTwistTypes) as [
-          TwistType,
-          boolean,
-        ][]
-      )
-        .filter(([, enabled]) => enabled)
-        .map(([type]) => type)
-
       const twistCandidate =
         settingsRef.current.twistEnabled &&
-        enabledTwistTypes.length > 0 &&
         (settingsRef.current.twistProbability >= 1 ||
           spinsRef.current >= settingsRef.current.twistCooldownSpins) &&
         Math.random() < settingsRef.current.twistProbability
 
-      let resolvedTwistType: TwistType | null = null
       let resolvedTwistShift: TwistShiftConfig | null = null
       let finalWinnerStudent = selectedStudent
       let targetRotation = selectedTargetRotation
 
       if (twistCandidate) {
-        resolvedTwistType = pickRandom(enabledTwistTypes) ?? 'wind'
-        resolvedTwistShift = resolveTwistShift(
-          resolvedTwistType,
-          settingsRef.current,
-        )
+        resolvedTwistShift = resolveTwistShift()
 
         const shifted = getShiftedWinnerByAvailableOrder(
           workingStudents,
@@ -253,7 +224,7 @@ export const useRouletteEngine = ({
         }
       }
 
-      const applyTwist = twistCandidate && resolvedTwistType !== null
+      const applyTwist = twistCandidate
 
       const token = spinTokenRef.current + 1
       spinTokenRef.current = token
@@ -262,7 +233,6 @@ export const useRouletteEngine = ({
       setErrorMessage('')
       setWinnerId(null)
       setTwistMessage('')
-      setActiveTwistType(null)
       setRouletteState('countdown')
 
       await wait(COUNTDOWN_MS)
@@ -270,8 +240,7 @@ export const useRouletteEngine = ({
         return
       }
 
-      if (applyTwist && resolvedTwistType) {
-        const twistType = resolvedTwistType
+      if (applyTwist) {
         const fakeStopOffset = randomFloat(8, 18)
         const fakeStopRotation = selectedTargetRotation - fakeStopOffset
         const finalDelta = targetRotation - fakeStopRotation
@@ -303,8 +272,7 @@ export const useRouletteEngine = ({
         }
 
         setRouletteState('twistEvent')
-        setActiveTwistType(twistType)
-        setTwistMessage(`${TWIST_MESSAGES[twistType]} ${shiftMessage}`)
+        setTwistMessage(`風が吹いた！ ${shiftMessage}`)
         setTransitionEasing('ease-out')
         setTransitionDurationMs(NUDGE_MS)
         setRotation(nudgeRotation)
@@ -390,11 +358,16 @@ export const useRouletteEngine = ({
     setTransitionDurationMs(0)
     setTransitionEasing('linear')
     setTwistMessage('')
-    setActiveTwistType(null)
     setErrorMessage('')
     setSpinsSinceLastTwist(settingsRef.current.twistCooldownSpins)
     spinsRef.current = settingsRef.current.twistCooldownSpins
   }, [clearTimers, isBusy, setStudents])
+
+  const clearResult = useCallback(() => {
+    if (rouletteState === 'result') {
+      setRouletteState('idle')
+    }
+  }, [rouletteState])
 
   useEffect(() => {
     return () => {
@@ -411,7 +384,6 @@ export const useRouletteEngine = ({
     transitionDurationMs,
     transitionEasing,
     winnerId,
-    activeTwistType,
     twistMessage,
     errorMessage,
     availableCount,
@@ -421,5 +393,6 @@ export const useRouletteEngine = ({
     canStart,
     startSpin,
     resetAll,
+    clearResult,
   }
 }

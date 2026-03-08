@@ -1,4 +1,4 @@
-import type { ColorScheme, RouletteSettings, Student, TwistType } from './types'
+import type { ColorScheme, RouletteSettings, Student } from './types'
 
 export const STORAGE_KEYS = {
   students: 'class-roulette:students:v1',
@@ -13,12 +13,6 @@ export const DEFAULT_SETTINGS: RouletteSettings = {
   twistEnabled: true,
   twistProbability: 0.05,
   twistCooldownSpins: 5,
-  enabledTwistTypes: {
-    bird: true,
-    wind: true,
-    sparkle: true,
-  },
-  sparkleShiftMode: 'forward2',
   segmentStyle: 'solid',
   showDividers: true,
   showLabels: true,
@@ -47,11 +41,6 @@ export const createDefaultStudents = (): Student[] =>
     isAvailable: true,
   }))
 
-export const TWIST_MESSAGES: Record<TwistType, string> = {
-  bird: '鳥がきた！',
-  wind: '風が吹いた！',
-  sparkle: 'きらめきが走った！',
-}
 
 export const COLOR_PALETTES: Record<ColorScheme, string[]> = {
   pastel: [
@@ -84,8 +73,8 @@ export const NORMAL_SPIN_MIN_MS = 4000
 export const NORMAL_SPIN_MAX_MS = 5500
 export const TWIST_SPIN_MIN_MS = 3400
 export const TWIST_SPIN_MAX_MS = 4300
-export const FAKE_STOP_HOLD_MS = 240
+export const FAKE_STOP_HOLD_MS = 1200
 export const NUDGE_MS = 260
 export const TWIST_FINAL_MS = 420
-export const TWIST_MESSAGE_HOLD_MS = 360
+export const TWIST_MESSAGE_HOLD_MS = 1600
 export const MIN_FULL_TURNS = 4

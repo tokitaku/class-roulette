@@ -5,6 +5,8 @@ import { SettingsPanel } from '../components/SettingsPanel'
 import { StudentEditor } from '../components/StudentEditor'
 import { TwistEffect } from '../components/TwistEffect'
 import { Wheel } from '../components/Wheel'
+import { WinnerWidget } from '../components/WinnerWidget'
+
 import { DEFAULT_SETTINGS, STORAGE_KEYS, createDefaultStudents } from '../constants'
 import { useLocalStorageState } from '../hooks/useLocalStorageState'
 import { useRouletteEngine } from '../hooks/useRouletteEngine'
@@ -30,10 +32,6 @@ export const RoulettePage = () => {
     () => ({
       ...DEFAULT_SETTINGS,
       ...settings,
-      enabledTwistTypes: {
-        ...DEFAULT_SETTINGS.enabledTwistTypes,
-        ...settings.enabledTwistTypes,
-      },
     }),
     [settings],
   )
@@ -159,7 +157,7 @@ export const RoulettePage = () => {
               />
 
               <TwistEffect
-                twistType={engine.state === 'twistEvent' ? engine.activeTwistType : null}
+                active={engine.state === 'twistEvent'}
               />
 
               {engine.state === 'countdown' && (
@@ -203,6 +201,13 @@ export const RoulettePage = () => {
         setSettings={setSettings}
         onClose={() => setSettingsOpen(false)}
       />
+
+      {engine.state === 'result' && engine.winnerId && (
+        <WinnerWidget
+          winnerName={students.find((s) => s.id === engine.winnerId)?.name ?? '不明な生徒'}
+          onClose={engine.clearResult}
+        />
+      )}
     </div>
   )
 }

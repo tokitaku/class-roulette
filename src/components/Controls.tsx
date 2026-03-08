@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import type { RouletteState } from '../types'
+import { isControlsLocked } from '../utils/stateHelpers'
 
 type ControlsProps = {
   state: RouletteState
@@ -20,9 +21,7 @@ export const Controls = ({
   onStart,
   onReset,
 }: ControlsProps) => {
-  const rotationLocked =
-    state === 'spinning' || state === 'fakeStop' || state === 'twistEvent'
-  const buttonsLocked = state === 'countdown' || rotationLocked
+  const buttonsLocked = isControlsLocked(state)
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
