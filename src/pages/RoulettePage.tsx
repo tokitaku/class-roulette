@@ -120,19 +120,8 @@ export const RoulettePage = () => {
       </header>
 
       <main
-        className={`mx-auto grid w-full max-w-[1440px] gap-6 px-4 py-6 md:px-6 ${isSidebarVisible ? 'lg:grid-cols-[380px_minmax(0,1fr)]' : 'lg:grid-cols-1'
-          }`}
+        className="mx-auto grid w-full max-w-[1440px] gap-6 px-4 py-6 md:px-6"
       >
-        {isSidebarVisible && (
-          <StudentEditor
-            students={students}
-            locked={isEditingLocked}
-            onAddStudent={handleAddStudent}
-            onToggleAvailability={handleToggleAvailability}
-            onApplyBulk={handleApplyBulk}
-          />
-        )}
-
         <section className="rounded-3xl bg-white p-5 shadow-lg">
           <div className="relative mx-auto w-full max-w-[760px]">
             <div className="relative">
@@ -193,6 +182,16 @@ export const RoulettePage = () => {
           </div>
         </section>
       </main>
+
+      <StudentEditor
+        open={isSidebarVisible}
+        students={students}
+        locked={isEditingLocked}
+        onAddStudent={handleAddStudent}
+        onToggleAvailability={handleToggleAvailability}
+        onApplyBulk={handleApplyBulk}
+        onClose={() => setSidebarVisible(false)}
+      />
 
       <SettingsPanel
         open={isSettingsOpen}
